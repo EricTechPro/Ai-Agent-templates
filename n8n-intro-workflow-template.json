@@ -1,0 +1,462 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        40,
+        -60
+      ],
+      "id": "71ed50fe-9961-4fb9-800b-a48bdc2874be",
+      "name": "Telegram Trigger",
+      "webhookId": "a44adaab-5c0d-4992-b781-14333bfc31db",
+      "credentials": {
+        "telegramApi": {
+          "id": "mgz1oy239AqdPf7j",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.MessageText ? $json.MessageText : $json.text }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant.\n\nYou have power to append data to the google sheet and delete and read operation in gmail. When append data in google, please just append it in a new row where the cell doesn't have any data. Please don't overwrite the data"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        820,
+        -120
+      ],
+      "id": "c5984d89-fcff-4af7-9a16-176388d866cd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        180
+      ],
+      "id": "28c7f0a8-34e2-4ea4-ab01-f8a3f7f2b084",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "gdkXmr8L3GpSdw0y",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        -120
+      ],
+      "id": "f1c6a46e-3bcb-4a6d-b02c-2f6ab0a022aa",
+      "name": "Telegram Send Message",
+      "webhookId": "3a3ff42b-1c2b-430a-bc2c-7aab14952447",
+      "credentials": {
+        "telegramApi": {
+          "id": "mgz1oy239AqdPf7j",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 30,
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        1000,
+        180
+      ],
+      "id": "de0098f1-0842-4267-9800-40218fb5c909",
+      "name": "Gmail",
+      "webhookId": "f6485e5a-1178-4145-a462-66b1be01f7e1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pO27GXdfmNSE8Tbg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "write data to Google Sheets",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1cfKI-TovM6qK62uEWOicx_eRujgE70IyP1a66oyctPQ",
+          "mode": "list",
+          "cachedResultName": "Delivery Status Notification (Failure) - Emails",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cfKI-TovM6qK62uEWOicx_eRujgE70IyP1a66oyctPQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 565555647,
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cfKI-TovM6qK62uEWOicx_eRujgE70IyP1a66oyctPQ/edit#gid=565555647"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Emails": "={{ $fromAI('placeholder_name', 'Email Addressess that we extract that are blocked or undeliverable') }}"
+          },
+          "matchingColumns": [
+            "Emails"
+          ],
+          "schema": [
+            {
+              "id": "Emails",
+              "displayName": "Emails",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "RAW",
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        180
+      ],
+      "id": "856cca86-8ff7-4a25-a3f4-83c6252aca8e",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "piOkEiopbSh6SC2q",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ $fromAI('placeholder_name', 'Message Id for the email to delete') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        1160,
+        120
+      ],
+      "id": "581fe0a1-ebb7-4f61-a5ba-64d60c8f5629",
+      "name": "Gmail1",
+      "webhookId": "eeedc9c5-d17f-409d-928b-791518fdf8b6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "pO27GXdfmNSE8Tbg",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a7e77cb9-8885-43da-a5a9-b0798f77f84d",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "voice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        220,
+        -60
+      ],
+      "id": "39790893-5858-4f9c-9007-d60855109c1d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f3513eb4-4c5e-4f9e-91d6-dede86e43f9b",
+              "name": "MessageText",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        -160
+      ],
+      "id": "8b0e4c56-0092-4ca2-880e-4912a1543cfc",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        40
+      ],
+      "id": "ca691d46-e237-459f-9920-ca9868902092",
+      "name": "Telegram",
+      "webhookId": "a0b4fe08-5256-487b-9bdf-fe2d2b92b69f",
+      "credentials": {
+        "telegramApi": {
+          "id": "mgz1oy239AqdPf7j",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        540,
+        40
+      ],
+      "id": "60b7d93c-8d5b-4926-9693-f7fc6f64a5be",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "gdkXmr8L3GpSdw0y",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "95d301c4-5953-4de5-b41d-b5c3796f988d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2ffb322c7bd1380ed06e8fa0ad206c0f065d7e87178a419bf58831603642d15b"
+  },
+  "id": "k7RfzlEhXzrlcSjT",
+  "tags": []
+}
