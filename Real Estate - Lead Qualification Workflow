@@ -1,0 +1,262 @@
+{
+  "name": "Real Estate - Lead Qualification Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Real Estate Lead Qualification Questions",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Preferred City",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Preferred Province",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "min Budget",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "max Budget",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Number of Bedrooms+",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Number of Bathrooms+",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Property Type",
+              "placeholder": "Condo, Single-Family, Townhome, Apartment, House",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Has Garage",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Year Built & After",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Timeline",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "1-3 Months"
+                  },
+                  {
+                    "option": "3-6 Months"
+                  },
+                  {
+                    "option": "6+ Months"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Mortgage Approved?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "",
+      "name": "New Lead Submission",
+      "webhookId": ""
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI assistant responsible for qualifying real estate leads...",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        200,
+        0
+      ],
+      "id": "",
+      "name": "Lead Qualification AI"
+    },
+    {
+      "parameters": {
+        "model": "2023-07-01-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        180,
+        220
+      ],
+      "id": "",
+      "name": "AI Lead Scoring",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('New Lead Submission').item.json.Name }}",
+            "Email": "={{ $('New Lead Submission').item.json.Email }}",
+            "Bedrooms": "={{ $('New Lead Submission').item.json['Number of Bedrooms+'] }}",
+            "Bathrooms": "={{ $('New Lead Submission').item.json['Number of Bathrooms+'] }}",
+            "Property Type": "={{ $('New Lead Submission').item.json['Property Type'] }}",
+            "Timeline": "={{ $('New Lead Submission').item.json.Timeline }}",
+            "Lead Score": "={{ $json.text }}",
+            "Mortgage Approved": "={{ $('New Lead Submission').item.json['Mortgage Approved?'] }}",
+            "Status": "New Lead",
+            "City": "={{ $('New Lead Submission').item.json['Preferred City'] }}",
+            "Province": "={{ $('New Lead Submission').item.json['Preferred Province'] }}",
+            "min Budget": "={{ $('New Lead Submission').item.json['min Budget'] }}",
+            "max Budget": "={{ $('New Lead Submission').item.json['max Budget'] }}",
+            "Has Garage": "={{ $('New Lead Submission').item.json['Has Garage'] }}",
+            "Year Built & After": "={{ $('New Lead Submission').item.json['Year Built & After'] }}"
+          },
+          "matchingColumns": [
+            "Name"
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        520,
+        0
+      ],
+      "id": "",
+      "name": "Store Lead Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": ""
+        }
+      }
+    }
+  ],
+  "connections": {
+    "New Lead Submission": {
+      "main": [
+        [
+          {
+            "node": "Lead Qualification AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Qualification AI": {
+      "main": [
+        [
+          {
+            "node": "Store Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Lead Scoring": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Lead Qualification AI",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Lead Data": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "",
+  "tags": []
+}
