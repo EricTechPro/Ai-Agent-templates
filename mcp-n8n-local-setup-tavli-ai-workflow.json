@@ -1,0 +1,146 @@
+{
+  "name": "n8n + mcp server workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "32a9a20b-65c3-43c5-a3b9-91d2e2ec7537",
+      "name": "When chat message received",
+      "webhookId": "736f407e-19c7-45e2-8c74-603472a0cb46"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Choose the right tool based on the user input: {{ $json.chatInput }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        0
+      ],
+      "id": "0e19471a-02c3-4331-9386-d06fb1980aa7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "gpt4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "id": "d58aebb0-ce88-49bb-9c81-424484dba10b",
+      "name": "OpenAI LLM",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "xcKQrx6WRydDlD29",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        340,
+        220
+      ],
+      "id": "1c950502-a488-4a4a-b832-7b73e055ca55",
+      "name": "MCP Tavily - List tools",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "5Sb0rdZALuecjebF",
+          "name": "MCP Client (STDIO) account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        480,
+        220
+      ],
+      "id": "b3032a3a-c0e0-4972-bae3-a095b6618fee",
+      "name": "MCP Client",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "5Sb0rdZALuecjebF",
+          "name": "MCP Client (STDIO) account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Tavily - List tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bb4dc08c-0490-4863-a3e6-7e60c33ff2a4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b924074dbe5b049c3c3ab568ef3c487f60af60a836728bae97bfb86c1c81ec4c"
+  },
+  "id": "fYptygITSiIpsxxr",
+  "tags": []
+}
