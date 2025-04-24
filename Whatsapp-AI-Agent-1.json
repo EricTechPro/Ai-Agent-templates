@@ -1,0 +1,140 @@
+{
+  "name": "Whatsapp AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "431ca826-4932-44ba-b198-000be6998d3c",
+      "name": "WhatsApp Trigger",
+      "webhookId": "6647df41-003e-48cb-9d25-691237eaac20",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "YoWEKkNKQiiyLrp5",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "You are a helpful assistant, and your name is Eric."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        220,
+        0
+      ],
+      "id": "40c824a8-0cd3-472f-844c-d61e1a4865d4",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        200
+      ],
+      "id": "d841d7b0-e9e4-4761-93dc-9e5a3d97a196",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "zPEaty6SBoteItsn",
+          "name": "Open AI Model"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "662396106948639",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        580,
+        0
+      ],
+      "id": "ac8f569f-59a1-4f41-9541-da4b958c9980",
+      "name": "WhatsApp Respond",
+      "webhookId": "8f34d76d-59e4-44af-bdf4-a60a001689d6",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "bvhIjgdtykbylEwQ",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1f01ec96-b694-41fa-98dd-6e2e1e2fb395",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d354ad4d98cfd56dd96aebd442bda0faf5d51ade4e401a2018f2bf787af2646c"
+  },
+  "id": "S1eS3GoJeH7022kH",
+  "tags": []
+}
