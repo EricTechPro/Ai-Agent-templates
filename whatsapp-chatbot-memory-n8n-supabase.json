@@ -1,0 +1,255 @@
+{
+  "name": "Whatsapp AI Agent + Long Term Memory",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        620,
+        0
+      ],
+      "id": "8742707f-eed6-412c-bdad-822228479b50",
+      "name": "WhatsApp Trigger",
+      "webhookId": "6647df41-003e-48cb-9d25-691237eaac20",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "YoWEKkNKQiiyLrp5",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('WhatsApp Trigger').item.json.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "=# ROLE\nYou are a friendly AI assistant.\nYou are currently talking to a user over WhatsApp.\n\n# RULES\nWhen the user sends a new message, decide if they shared any **noteworthy information** that should be **saved in memory** for future reference.\n\nIf so, use the **Save Memory** tool to store this information.\nDO NOT inform the user that you are saving this information.\n\nSimply continue the conversation as normal.\n\n# Tools\n## Save Memory\nUse this tool to **store any important facts** shared by the user.\nSummarize the information clearly and pass it to this tool.\n\n# Memories\nThese are the **last stored facts** collected from the user (including date/time).\n\n{{ $json.ConversationMemories.toJsonString() }}\n\n!! IMPORTANT !!\nTake these stored facts into account when replying.\nIf a fact was already stored, do not repeat asking for it.\n\nRespond naturally and conversationally.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "c5fa86c3-e066-428f-be29-0736426159c0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1080,
+        200
+      ],
+      "id": "db42e91e-49ca-4f7d-a085-8814e7ff79ad",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "zPEaty6SBoteItsn",
+          "name": "Open AI Model"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "662396106948639",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        0
+      ],
+      "id": "873114d9-b11e-453c-b815-786005fa4a52",
+      "name": "WhatsApp Respond",
+      "webhookId": "8f34d76d-59e4-44af-bdf4-a60a001689d6",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "bvhIjgdtykbylEwQ",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "ConversationMemory",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "message",
+              "fieldValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Field_Value', ``, 'string') }}"
+            },
+            {
+              "fieldId": "sender",
+              "fieldValue": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}"
+            },
+            {
+              "fieldId": "recipient",
+              "fieldValue": "={{ $('WhatsApp Trigger').item.json.metadata.display_phone_number }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        200
+      ],
+      "id": "ed5e303b-dfae-4e50-a938-d84ea664fd47",
+      "name": "Save Message",
+      "credentials": {
+        "supabaseApi": {
+          "id": "tfHFugpS6lq0IBmr",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "ConversationMemory",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "sender",
+              "condition": "eq",
+              "keyValue": "={{ $json.messages[0].from }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        780,
+        0
+      ],
+      "id": "c463601d-61ba-4b2e-a5f6-5922cf14eead",
+      "name": "Get Memory",
+      "credentials": {
+        "supabaseApi": {
+          "id": "tfHFugpS6lq0IBmr",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "ConversationMemories",
+        "include": "specifiedFields",
+        "fieldsToInclude": "message, created_at ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        940,
+        0
+      ],
+      "id": "19c56102-599c-411d-8729-63fa9c218f9d",
+      "name": "Aggregate"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Memory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Message": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Memory": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "96cbd2b5-1d6e-47a4-b006-05b4a5d10754",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d354ad4d98cfd56dd96aebd442bda0faf5d51ade4e401a2018f2bf787af2646c"
+  },
+  "id": "KCjDaQvY1XJtSP1G",
+  "tags": []
+}
