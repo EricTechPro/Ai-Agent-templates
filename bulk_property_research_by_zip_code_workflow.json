@@ -1,0 +1,440 @@
+{
+  "name": "Bulk Property Research by Zip Code Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/maxcopell~zillow-detail-scraper/run-sync-get-dataset-items?token=[apify_api_key]",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"extractBuildingUnits\": \"all\",\n    \"startUrls\": [\n        {\n            \"url\": \"{{ $json.detailUrl }}\",\n            \"method\": \"GET\"\n        }\n    ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -140
+      ],
+      "id": "31e23414-086a-4f8c-96b4-7cb05d8769ae",
+      "name": "Get Zillow Listing Detail"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "x-ai/grok-vision-beta",
+          "mode": "list",
+          "cachedResultName": "X-AI/GROK-VISION-BETA"
+        },
+        "text": "Analyze this property images and provide only the following five numeric scores (0 to 5) based on visible conditions:\n\n- Structural condition: 0 (major damage) to 5 (excellent condition)\n- Renovation potential: 0 (extensive work needed) to 5 (minor cosmetic updates)\n- Curb appeal: 0 (poor) to 5 (excellent)\n- Safety/security: 0 (none) to 5 (well-secured)\n- Unique features: 0 (none) to 5 (many valuable features)\n\nFor each score, include a brief reason (max 100 characters) explaining how you arrived at the score based on the image.\n\nReturn the result in this exact JSON format:\n\n{\n  \"structural\": { \"score\": <number>, \"reason\": \"<brief explanation>\" },\n  \"renovation\": { \"score\": <number>, \"reason\": \"<brief explanation>\" },\n  \"curbAppeal\": { \"score\": <number>, \"reason\": \"<brief explanation>\" },\n  \"safety\": { \"score\": <number>, \"reason\": \"<brief explanation>\" },\n  \"uniqueFeatures\": { \"score\": <number>, \"reason\": \"<brief explanation>\" }\n}\n\nExample Expected Output\n\njson\n\nCopy Code\n{\n  \"structural\": { \"score\": 4.5, \"reason\": \"No visible cracks or damage on walls and roof\" },\n  \"renovation\": { \"score\": 3, \"reason\": \"Kitchen and bathroom look outdated\" },\n  \"curbAppeal\": { \"score\": 3.5, \"reason\": \"Lawn neat but lacks flowers or landscaping\" },\n  \"safety\": { \"score\": 4, \"reason\": \"Secure doors and windows visible\" },\n  \"uniqueFeatures\": { \"score\": 2, \"reason\": \"Fireplace and built-in shelves present\" }\n}",
+        "imageUrls": "={{ $json.responsivePhotos.map(photo => photo.mixedSources.jpeg[7].url).join(',') }}",
+        "options": {
+          "maxTokens": 300
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        940,
+        -140
+      ],
+      "id": "5f9223bb-fcb8-4572-876a-9e82c5a2db4f",
+      "name": "Analyze Property",
+      "credentials": {
+        "openAiApi": {
+          "id": "OMSbNqtGRFqfeW2P",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function calculateInvestmentScore(listing, imageScore) {\n  // Helper to safely parse HOA fee (annual)\n  function parseHoaFee(listing) {\n    if (listing.monthlyHoaFee) return listing.monthlyHoaFee * 12;\n    if (listing.hoaFee) return parseFloat(listing.hoaFee.replace(/[^0-9.]/g, ''));\n    return 0;\n  }\n\n  // Extract listing data with defaults\n  const price = listing.price || 0;\n  const bedrooms = listing.bedrooms || 0;\n  const bathrooms = listing.bathrooms || 0;\n  const livingArea = listing.livingArea || 0;\n  const yearBuilt = listing.yearBuilt || 1900;\n  const daysOnMarket = listing.daysOnZillow || listing.daysOnMarket || 0;\n  const hoaFee = parseHoaFee(listing);\n  const propertyTaxes = listing.taxAnnualAmount || 0;\n\n  // Calculate average school rating (0-5)\n  let avgSchoolRating = 0;\n  if (Array.isArray(listing.schools) && listing.schools.length > 0) {\n    const totalRating = listing.schools.reduce((sum, s) => sum + (s.rating || 0), 0);\n    avgSchoolRating = totalRating / listing.schools.length;\n  }\n\n  // Calculate comps average price if available\n  let compsAvgPrice = 0;\n  if (\n    listing.collections &&\n    Array.isArray(listing.collections.modules) &&\n    listing.collections.modules.length > 0\n  ) {\n    const comps = listing.collections.modules[0].propertyDetails || [];\n    if (comps.length > 0) {\n      const totalCompPrice = comps.reduce((sum, c) => sum + (c.price || 0), 0);\n      compsAvgPrice = totalCompPrice / comps.length;\n    }\n  }\n\n  // Normalize scores to 0-5 scale\n\n  // Price score: better if price < compsAvgPrice\n  let priceScore = 2.5; // neutral default\n  if (compsAvgPrice > 0) {\n    const ratio = price / compsAvgPrice;\n    priceScore = ratio < 1 ? 5 : Math.max(0, 5 - (ratio - 1) * 10);\n  }\n  priceScore = Math.round(priceScore * 100) / 100;\n\n  // Bedrooms score (max 5 for 5+ bedrooms)\n  const bedroomsScore = Math.min(bedrooms, 5);\n\n  // Bathrooms score (max 5 for 4+ bathrooms)\n  const bathroomsScore = Math.min(bathrooms, 4) * 1.25;\n\n  // Living area score (max 5 for 3000+ sqft)\n  const livingAreaScore = Math.min(livingArea / 600, 5);\n\n  // Year built score (max 5 for built in last 10 years)\n  const currentYear = new Date().getFullYear();\n  const age = currentYear - yearBuilt;\n  const yearBuiltScore = age <= 10 ? 5 : Math.max(0, 5 - (age - 10) * 0.2);\n\n  // Days on market score (ideal 30-90 days)\n  let daysScore = 5;\n  if (daysOnMarket < 30) daysScore = 3;\n  else if (daysOnMarket > 90) daysScore = 2;\n\n  // Fees score (HOA + taxes, max 5 if fees < $500)\n  const fees = hoaFee + propertyTaxes;\n  const feesScore = fees < 500 ? 5 : Math.max(0, 5 - (fees - 500) / 200);\n\n  // School score (average rating)\n  const schoolScore = avgSchoolRating;\n\n\n\n  // Round all component scores to 2 decimals\n  const roundedScores = {\n    priceScore,\n    bedroomsScore: Math.round(bedroomsScore * 100) / 100,\n    bathroomsScore: Math.round(bathroomsScore * 100) / 100,\n    livingAreaScore: Math.round(livingAreaScore * 100) / 100,\n    yearBuiltScore: Math.round(yearBuiltScore * 100) / 100,\n    daysScore: Math.round(daysScore * 100) / 100,\n    feesScore: Math.round(feesScore * 100) / 100,\n    schoolScore: Math.round(schoolScore * 100) / 100,\n    imageScore: Math.round(imageScore * 100) / 100,\n  };\n\n  // Combine scores with weights\n  const investmentScore =\n    0.25 * roundedScores.priceScore +\n    0.1 * roundedScores.bedroomsScore +\n    0.1 * roundedScores.bathroomsScore +\n    0.1 * roundedScores.livingAreaScore +\n    0.1 * roundedScores.yearBuiltScore +\n    0.1 * roundedScores.daysScore +\n    0.05 * roundedScores.feesScore +\n    0.1 * roundedScores.schoolScore +\n    0.2 * roundedScores.imageScore;\n\n  // Round final investment score to 2 decimals and clamp between 0 and 5\n  const finalScore = Math.min(5, Math.max(0, Math.round(investmentScore * 100) / 100));\n\n  // Threshold for passing\n  const minimumThreshold = 3.0;\n\n  return {\n    investmentScore: finalScore,\n    passesThreshold: finalScore >= minimumThreshold,\n    breakdown: roundedScores,\n  };\n}\n\nreturn calculateInvestmentScore(\n  $('Get Zillow Listing Detail').first().json, \n  $input.first().json.imageScore\n);\n/**\nExample Data Def\n{\n  \"investmentScore\": \"Overall investment potential score (0 = poor, 5 = excellent)\",\n  \"passesThreshold\": \"Indicates if investmentScore meets minimum threshold\",\n  \"breakdown\": \"Detailed breakdown of individual scores\",\n  \"breakdown.priceScore\": \"Property price compared to comps (0 = overpriced, 5 = great value)\",\n  \"breakdown.bedroomsScore\": \"Number of bedrooms (0 = few, 5 = 5+)\",\n  \"breakdown.bathroomsScore\": \"Number of bathrooms (0 = few, 5 = 4+)\",\n  \"breakdown.livingAreaScore\": \"Living area size (0 = small, 5 = 3000+ sqft)\",\n  \"breakdown.yearBuiltScore\": \"Property age (0 = very old, 5 = new/renovated)\",\n  \"breakdown.daysScore\": \"Days on market (0 = too short/long, 5 = ideal)\",\n  \"breakdown.feesScore\": \"HOA and property fees (0 = high, 5 = low)\",\n  \"breakdown.schoolScore\": \"Nearby school quality (0 = poor, 10 = excellent)\",\n  \"breakdown.imageScore\": \"Visual condition and appeal (0 = poor, 5 = excellent)\"\n}\n */"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -140
+      ],
+      "id": "6261f48f-3df6-41c0-b6b0-2de9086973b0",
+      "name": "Investment Score"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assume the JSON string is in $json.content (adjust if different)\nconst rawContent = $input.first().json.content;\n\n// Extract JSON part from the string (remove markdown ```json and ``` if present)\nconst jsonMatch = rawContent.match(/\\{[\\s\\S]*\\}/);\nif (!jsonMatch) {\n  throw new Error(\"No JSON found in content\");\n}\n\nconst parsed = JSON.parse(jsonMatch[0]);\n\n// Extract scores and reasons\nconst structuralScore = parsed.structural.score;\nconst structuralReason = parsed.structural.reason;\n\nconst renovationScore = parsed.renovation.score;\nconst renovationReason = parsed.renovation.reason;\n\nconst curbAppealScore = parsed.curbAppeal.score;\nconst curbAppealReason = parsed.curbAppeal.reason;\n\nconst safetyScore = parsed.safety.score;\nconst safetyReason = parsed.safety.reason;\n\nconst uniqueFeaturesScore = parsed.uniqueFeatures.score;\nconst uniqueFeaturesReason = parsed.uniqueFeatures.reason;\n\n  // Image score weighted sum\n  const imageScore =\n    0.4 * (structuralScore || 0) +\n    0.3 * (renovationScore || 0) +\n    0.15 * (curbAppealScore || 0) +\n    0.1 * (safetyScore || 0) +\n    0.05 * (uniqueFeaturesScore || 0);\n\n// Return structured data for next nodes\nreturn [{\n  json: {\n    structuralScore,  // How strong and solid the building looks\n    structuralReason,\n    renovationScore,  // How much fixing or updating the inside needs\n    renovationReason,\n    curbAppealScore,  // How nice the outside and yard look\n    curbAppealReason,\n    safetyScore,      // How safe the house looks (locks, lights, etc.)\n    safetyReason,\n    uniqueFeaturesScore, // Special things that make the house better or nicer\n    uniqueFeaturesReason,\n    imageScore\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        -140
+      ],
+      "id": "2153cea8-9941-4d6f-a58e-40a5712c632f",
+      "name": "Images Scores"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1mF7bB5_2Zj5s1ZUIFjhXALctAWChJ9Z0UASjpO0jWVU",
+          "mode": "list",
+          "cachedResultName": "Real Estate Property Eval",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mF7bB5_2Zj5s1ZUIFjhXALctAWChJ9Z0UASjpO0jWVU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1mF7bB5_2Zj5s1ZUIFjhXALctAWChJ9Z0UASjpO0jWVU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Address": "={{$('Get Zillow Listing Detail').item.json.address.streetAddress}} {{$('Get Zillow Listing Detail').item.json.address.city}}, {{$('Get Zillow Listing Detail').item.json.address.state}} {{ $('Get Zillow Listing Detail').item.json.address.zipcode }}",
+            "Price": "={{ $('Get Zillow Listing Detail').item.json.price }}",
+            "# Bedroom": "={{ $('Get Zillow Listing Detail').item.json.bedrooms }}",
+            "# Bathroom": "={{ $('Get Zillow Listing Detail').item.json.bathrooms }}",
+            "Zillow Link": "={{ $('On form submission').item.json['Zillow Link'] }}",
+            "Investment Score": "={{ $json.investmentScore }}",
+            "Images Score": "={{ $json.breakdown.imageScore }}",
+            "Above Average?": "={{ $json.passesThreshold ? \"yes\" : \"no\" }}",
+            "Price Score": "={{ $json.breakdown.priceScore }}",
+            "Bedrooms Score": "={{ $json.breakdown.bedroomsScore }}",
+            "Bathroom Score": "={{ $json.breakdown.bathroomsScore }}",
+            "Living Area Score": "={{ $json.breakdown.livingAreaScore }}",
+            "YearBuiltScore": "={{ $json.breakdown.yearBuiltScore }}",
+            "DaysInMarket Score": "={{ $json.breakdown.daysScore }}",
+            "Fees Score": "={{ $json.breakdown.feesScore }}",
+            "School Score": "={{ $json.breakdown.schoolScore }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price",
+              "displayName": "Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "# Bedroom",
+              "displayName": "# Bedroom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "# Bathroom",
+              "displayName": "# Bathroom",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Zillow Link",
+              "displayName": "Zillow Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Investment Score",
+              "displayName": "Investment Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Images Score",
+              "displayName": "Images Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Above Average?",
+              "displayName": "Above Average?",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price Score",
+              "displayName": "Price Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bedrooms Score",
+              "displayName": "Bedrooms Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bathroom Score",
+              "displayName": "Bathroom Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Living Area Score",
+              "displayName": "Living Area Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YearBuiltScore",
+              "displayName": "YearBuiltScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "DaysInMarket Score",
+              "displayName": "DaysInMarket Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fees Score",
+              "displayName": "Fees Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "School Score",
+              "displayName": "School Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1520,
+        -140
+      ],
+      "id": "931053e2-de6e-4058-8ab1-32502313d819",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "d3HH37F2mmaRPgJW",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "AI Properties Research",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Zip Code",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -160
+      ],
+      "id": "83e3044a-282d-471d-b6f8-766a045f5255",
+      "name": "On form submission",
+      "webhookId": "0c980466-3e0a-4e67-aea3-cdc24c74b2ca"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/maxcopell~zillow-zip-search/run-sync-get-dataset-items?token=[apify-api-key]",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"forRent\": false,\n    \"forSaleByAgent\": true,\n    \"forSaleByOwner\": false,\n    \"priceMax\": 400000,\n    \"sold\": false,\n    \"zipCodes\": [\n        \"{{ $json['Zip Code'] }}\"\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        280,
+        -160
+      ],
+      "id": "f3734533-f0d3-415e-8ba1-1128978b38f8",
+      "name": "Zillow Zip Code Search"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        500,
+        -160
+      ],
+      "id": "fdbb326f-2046-448c-8baa-1faa124c74cb",
+      "name": "Loop Over Items"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Zillow Listing Detail": {
+      "main": [
+        [
+          {
+            "node": "Analyze Property",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Property": {
+      "main": [
+        [
+          {
+            "node": "Images Scores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Images Scores": {
+      "main": [
+        [
+          {
+            "node": "Investment Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Investment Score": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Zillow Zip Code Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zillow Zip Code Search": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get Zillow Listing Detail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d67fb7f5-db78-47c3-9098-7ba123120d24",
+  "meta": {
+    "instanceId": "94f79cbc0323c0f699b914a3d3a188ed262887579ed29764316af5840b3dd33a"
+  },
+  "id": "vA8FOlxmxC9KFpCH",
+  "tags": []
+}
