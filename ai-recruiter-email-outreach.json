@@ -1,0 +1,325 @@
+{
+  "name": "Recruiter-Email-Outreach",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": "={{ Math.floor(Math.random() * 3) + 5 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        1480,
+        140
+      ],
+      "id": "c0a13786-ed4e-4258-b786-063f20442805",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a concise, personalized cold email to {{$json[\"Name\"]}}, who is a {{$json[\"Job Title\"]}} at {{$json[\"Company\"]}}.\n\nIn the first sentence, briefly describe what {{$json[\"Company\"]}} does and its mission in a short, conversational way (e.g., “making digital security seamless for millions”).\n\nIn the next sentence, use this template:\n“As an ex-Microsoft/Amazon Senior Software Engineer with 6+ YoE, I’ve led AWS data platform projects (50+ SaaS integrations, GenAI, micro-frontends) and built Microsoft Teams features for 100M+ users.”\n\nIn the following sentence, clearly state how my experience aligns with {{$json[\"Company\"]}}’s mission or current challenges (e.g., “I see a strong fit between my experience and {{$json[\"Company\"]}}'s mission to deliver secure, user-friendly collaboration tools.”).\n\nEnd with:\n“Would you be open to a quick chat to see if my background could support your team’s goals?”\n\nThen, add one more sentence encouraging the recipient to check out my YouTube channel for more insights and examples of my work; mention that my channel username is @ericwtech, and do not include any links.\n\nSign off as Eric.\n\nDo not include any links or attachments.\n\nKeep the email under 100 words.\n\nReturn only the email body as plain text, formatted for Gmail (use blank lines between paragraphs, keep line breaks and spacing clean and readable). Do not include a subject line or any other text.\n\nExample Output (plain text):\n\nHi {{ $json.Name }},\n\nI’ve been following 1Password’s work in making digital security seamless for millions. As an ex-Microsoft/Amazon Senior Software Engineer with 6+ YoE, I’ve led AWS data platform projects (50+ SaaS integrations, GenAI, micro-frontends) and shipped Microsoft Teams features for 100M+ users. I see a strong fit between my experience and 1Password’s mission to deliver secure, user-friendly collaboration tools.\n\nAnd I also see that you are a {{ $json['Job Title'] }} at {{ $json.Company }}.\n\nWould you be open to a quick chat to see if my background could support your team’s goals?\n\nIf you’re interested in more insights and examples of my work, feel free to check out my YouTube channel (@ericwtech).\n\nBest,  \nEric",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        1800,
+        140
+      ],
+      "id": "7fa00fd3-cc87-41d8-a687-e006f45e57b9",
+      "name": "Email Crafter"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1820,
+        320
+      ],
+      "id": "098cb871-7742-4a67-88e7-19e91de48c1a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "OMSbNqtGRFqfeW2P",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get Lead (CRM)').item.json.Email }}",
+        "subject": "={{ $('Get Lead (CRM)').item.json.FirstName }}, ex-Microsoft/Amazon SWE – Quick {{ $('Get Lead (CRM)').item.json.Company }} Chat? 🚀",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2100,
+        140
+      ],
+      "id": "97b2505a-14d7-4227-a009-460f147d44f9",
+      "name": "Gmail",
+      "webhookId": "9dc21582-3fc8-4e5e-8eaa-b15e07f44d28",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3uQbK6GPsv2EXiJe",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1lex_GljeUBrvxm6AvRb-UPTWaV_8M-kd0bSzFZOQZ-Y",
+          "mode": "list",
+          "cachedResultName": "Test - Recruiter Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lex_GljeUBrvxm6AvRb-UPTWaV_8M-kd0bSzFZOQZ-Y/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lex_GljeUBrvxm6AvRb-UPTWaV_8M-kd0bSzFZOQZ-Y/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Todo"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1640,
+        140
+      ],
+      "id": "d7009460-1a60-49fe-bcf3-18cd8593a431",
+      "name": "Get Lead (CRM)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "d3HH37F2mmaRPgJW",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1lex_GljeUBrvxm6AvRb-UPTWaV_8M-kd0bSzFZOQZ-Y",
+          "mode": "list",
+          "cachedResultName": "Test - Recruiter Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lex_GljeUBrvxm6AvRb-UPTWaV_8M-kd0bSzFZOQZ-Y/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lex_GljeUBrvxm6AvRb-UPTWaV_8M-kd0bSzFZOQZ-Y/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "=DONE",
+            "row_number": "={{ $('Get Lead (CRM)').item.json.row_number }}",
+            "Name": "={{ $('Get Lead (CRM)').item.json.Name }}",
+            "FirstName": "={{ $('Get Lead (CRM)').item.json.FirstName }}",
+            "Email": "={{ $('Get Lead (CRM)').item.json.Email }}",
+            "Job Title": "={{ $('Get Lead (CRM)').item.json['Job Title'] }}",
+            "Company": "={{ $('Get Lead (CRM)').item.json.Company }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FirstName",
+              "displayName": "FirstName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2240,
+        140
+      ],
+      "id": "69ebe3e2-cb08-4d62-829b-f9596adf4cd0",
+      "name": "Update Status (CRM)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "d3HH37F2mmaRPgJW",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Lead (CRM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Crafter": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Crafter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Update Status (CRM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead (CRM)": {
+      "main": [
+        [
+          {
+            "node": "Email Crafter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f98865cd-4c9a-4ccd-a501-573f054ed4ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "94f79cbc0323c0f699b914a3d3a188ed262887579ed29764316af5840b3dd33a"
+  },
+  "id": "maOQI8exfxh9jCsE",
+  "tags": []
+}
