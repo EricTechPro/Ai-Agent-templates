@@ -1,0 +1,443 @@
+{
+  "name": "B2B-Email-Outreach",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": "={{ Math.floor(Math.random() * 3) + 5 }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -300,
+        0
+      ],
+      "id": "1e34913a-969c-454d-8065-0aee3bd24808",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get Lead').item.json.Email }}",
+        "subject": "={{ \n  [\n    `From an Ex-Microsoft/Amazon Engineer: Free Support for ${$('Get Lead').item.json.Name}`,\n    `Complimentary ${$('Get Lead').item.json.Cateogory} Solutions for ${$('Get Lead').item.json.Name}`\n  ][Math.floor(Math.random() * 2)]\n}}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1060,
+        0
+      ],
+      "id": "a86c83a2-8fa3-42c0-9606-eecf17cee883",
+      "name": "Gmail",
+      "webhookId": "05297f3f-5519-4c5f-ae9c-324d3e85e46c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3uQbK6GPsv2EXiJe",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a concise, professional cold email to {{ $('Get Lead').item.json.Name }}, who owns or manages a {{ $('Get Lead').item.json.Cateogory }} business in {{ $('Get Lead').item.json.City }}, {{ $('Get Lead').item.json.State }} ({{ $('Get Lead').item.json['Business Website'] }}).\n\nBegin the email with a friendly greeting using the recipient’s first name (e.g., “Hi {{ $('Get Lead').item.json.Name }},”).\n\nIn the first paragraph, show you understand what their business does by referencing the summary below.\n\nIn the second paragraph, introduce yourself as Eric, an ex-Microsoft/Amazon Senior Software Engineer with over six years of experience. Briefly mention that you have worked with businesses in their domain, providing solutions in areas such as:\n- AI automation and AI agents\n- Website or app design & development\n- Marketing campaigns\n- Web3/Blockchain development\n- Cloud solutions architecture\n- Data integration & analytics\n\nIn the third paragraph, based on the business summary and category, list three of the most relevant services you can offer from the list above (in bullet points). Then, clearly offer the one free service that would be most valuable for their business, tailored to their needs and your expertise.\n\nEnd with a friendly closing and sign off as Eric. Do not use any placeholders or brackets in the signature.\n\nKeep the email under 120 words, do not include any links, attachments, or subject line, and use a friendly, professional tone. Return only the email body as plain text, formatted for Gmail (use blank lines between paragraphs, keep line breaks and spacing clean and readable). If there is not enough information to personalize the offer, return an empty string.\n\nBelow is the business website summary for reference:\n{{ $json.text }} (If it is an empty string, then that means we didn't find anything from this website)",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        740,
+        0
+      ],
+      "id": "73f28732-ee7f-4499-9e01-52aa25958bd2",
+      "name": "Email Crafter"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        760,
+        180
+      ],
+      "id": "7d55565e-fec8-47c8-9f72-17a5dd652067",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "OMSbNqtGRFqfeW2P",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1_5PzNpItZuPykonNFt1ZKs3jYBm61nMV0uSlw_RKegQ",
+          "mode": "list",
+          "cachedResultName": "Test - B2B",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_5PzNpItZuPykonNFt1ZKs3jYBm61nMV0uSlw_RKegQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 875557942,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_5PzNpItZuPykonNFt1ZKs3jYBm61nMV0uSlw_RKegQ/edit#gid=875557942"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Get Lead').item.json.Name }}",
+            "row_number": "={{ $('Get Lead').item.json.row_number }}",
+            "Email": "={{ $('Get Lead').item.json.Email }}",
+            "City": "={{ $('Get Lead').item.json.City }}",
+            "State": "={{ $('Get Lead').item.json.State }}",
+            "Cateogory": "={{ $('Get Lead').item.json.Cateogory }}",
+            "Business Website": "={{ $('Get Lead').item.json['Business Website'] }}",
+            "Status": "=DONE"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cateogory",
+              "displayName": "Cateogory",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Business Website",
+              "displayName": "Business Website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1220,
+        0
+      ],
+      "id": "6e3051a7-dfac-4c38-a5a9-a7914de98200",
+      "name": "Update Status",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "d3HH37F2mmaRPgJW",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1_5PzNpItZuPykonNFt1ZKs3jYBm61nMV0uSlw_RKegQ",
+          "mode": "list",
+          "cachedResultName": "Test - B2B",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_5PzNpItZuPykonNFt1ZKs3jYBm61nMV0uSlw_RKegQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 875557942,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_5PzNpItZuPykonNFt1ZKs3jYBm61nMV0uSlw_RKegQ/edit#gid=875557942"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Todo"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -120,
+        0
+      ],
+      "id": "3c642933-8a46-41c0-a732-2d919d15cafd",
+      "name": "Get Lead",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "d3HH37F2mmaRPgJW",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json['Business Website'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        60,
+        0
+      ],
+      "id": "f8916969-b83a-4281-935f-d5bd694b5d93",
+      "name": "HTTP Request",
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.data ?? $json.error.message }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "ed61ed50-72d7-4d9a-8bca-2760cadcd93e",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        420,
+        180
+      ],
+      "id": "dfd3c0c1-ba17-48f2-9cbf-e8724a33315a",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "OMSbNqtGRFqfeW2P",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This is the website for {{ $('Get Lead').item.json.Name }}, which I scraped and converted to markdown from {{ $('Get Lead').item.json['Business Website'] }}. Please summarize the content below into plain text so that a customer can understand everything important about this business. \n\nIf there is no relevant information to summarize, or if there is an error, return an empty string (\"\").\n\nBelow is the markdown of the website:\n\"{{ $json.data }}\"",
+        "hasOutputParser": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        420,
+        0
+      ],
+      "id": "4e05ea42-c2b6-465d-9003-20981b5e0623",
+      "name": "Website Summarizer"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Crafter": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Crafter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lead": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Website Summarizer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Website Summarizer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Website Summarizer": {
+      "main": [
+        [
+          {
+            "node": "Email Crafter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b09f6157-a020-420f-bbf9-e7ff921f4191",
+  "meta": {
+    "instanceId": "94f79cbc0323c0f699b914a3d3a188ed262887579ed29764316af5840b3dd33a"
+  },
+  "id": "GSQwWttBfHuSjxqS",
+  "tags": []
+}
