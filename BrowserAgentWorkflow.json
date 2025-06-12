@@ -1,0 +1,695 @@
+{
+  "name": "BrowserAgent",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "extraction",
+        "operation": "query",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', \"The `sessionId` returned by the `Start_Browser` tool\", 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', \"The `windowId` returned by the `Start_Browser` tool\", 'string') }}",
+        "prompt": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "id": "951c1ebd-44e8-4bae-a560-a73aa154f2ad",
+      "name": "Query",
+      "type": "n8n-nodes-base.airtopTool",
+      "position": [
+        1200,
+        240
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "airtopApi": {
+          "id": "UwoMGXnxMfES8wSY",
+          "name": "Airtop account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "operation": "load",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', \"The `sessionId` returned by the `Start_Browser` tool\", 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', \"The `windowId` returned by the `Start_Browser` tool\", 'string') }}",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "id": "6cd0f01a-cf86-4c4d-96f4-51492b7549eb",
+      "name": "Load URL",
+      "type": "n8n-nodes-base.airtopTool",
+      "position": [
+        1320,
+        240
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "airtopApi": {
+          "id": "UwoMGXnxMfES8wSY",
+          "name": "Airtop account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "interaction",
+        "operation": "type",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', \"The `sessionId` returned by the `Start_Browser` tool\", 'string') }}",
+        "windowId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Window_ID', \"The `windowId` returned by the `Start_Browser` tool\", 'string') }}",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "pressEnterKey": true,
+        "elementDescription": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Element_Description', `Search bars usually contain a placeholder that says \"search\"`, 'string') }}",
+        "additionalFields": {}
+      },
+      "id": "d1a23aad-0e5e-494a-b934-7483791dddb8",
+      "name": "Type",
+      "type": "n8n-nodes-base.airtopTool",
+      "position": [
+        1080,
+        240
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtopApi": {
+          "id": "UwoMGXnxMfES8wSY",
+          "name": "Airtop account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "profileName": "={{ $json.profile_name }}"
+      },
+      "id": "3d07438e-a147-4ebc-89ec-164c5db8fd49",
+      "name": "Session",
+      "type": "n8n-nodes-base.airtop",
+      "position": [
+        800,
+        460
+      ],
+      "typeVersion": 1,
+      "executeOnce": true,
+      "credentials": {
+        "airtopApi": {
+          "id": "UwoMGXnxMfES8wSY",
+          "name": "Airtop account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "window",
+        "url": "={{ $('When Executed by Another Workflow').item.json.url }}",
+        "getLiveView": true,
+        "additionalFields": {}
+      },
+      "id": "57a35a50-4200-4ca9-a85d-a2aed8e1ee2e",
+      "name": "Window",
+      "type": "n8n-nodes-base.airtop",
+      "position": [
+        980,
+        460
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "airtopApi": {
+          "id": "UwoMGXnxMfES8wSY",
+          "name": "Airtop account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0a0680af-39bd-4bc7-b9cd-84c1766c79a1",
+              "name": "sessionId",
+              "type": "string",
+              "value": "={{ $('Session').item.json.sessionId }}"
+            },
+            {
+              "id": "13940ee8-c1d4-4718-a7b4-176c44c097b7",
+              "name": "windowId",
+              "type": "string",
+              "value": "={{ $('Window').item.json.data.windowId }}"
+            },
+            {
+              "id": "a0f2005c-2cd2-4a8d-891b-a4759b72a124",
+              "name": "output",
+              "type": "string",
+              "value": "Session and window created successfully"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8e57c04d-2b07-4160-ae72-ac3a1d9284f2",
+      "name": "Return IDs",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1400,
+        460
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "url"
+            },
+            {
+              "name": "profile_name"
+            }
+          ]
+        }
+      },
+      "id": "ec4738ee-1b64-47e2-8331-3e5ac6293d4b",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        620,
+        460
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "name": "Start_Browser",
+        "description": "Start a new browser session and window",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "46oHfCyZzDzPsCPm"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('url', `URL to load in the browser window`, 'string') }}",
+            "profile_name": "=erictech"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "profile_name",
+              "displayName": "profile_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "25af9fc6-7afe-4a50-9bfa-421ead0d2777",
+      "name": "Start Browser",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "position": [
+        840,
+        240
+      ],
+      "typeVersion": 2.1,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "terminate",
+        "sessionId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Session_ID', \"The `sessionId` returned by the `Start_Browser` tool\", 'string') }}"
+      },
+      "id": "da2a5ba9-2394-40c7-a6a2-6ae6ca4f5d49",
+      "name": "End Session",
+      "type": "n8n-nodes-base.airtopTool",
+      "position": [
+        1440,
+        240
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "airtopApi": {
+          "id": "UwoMGXnxMfES8wSY",
+          "name": "Airtop account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        620,
+        240
+      ],
+      "id": "62a28b63-acbb-4aed-b68b-257048b25646",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Log into my LinkedIn profile. Search for 'Developer Advocate' jobs in 'Canada' that were posted in the 'Past week'. Filter for jobs that have the 'Easy Apply' feature. Apply to the first 2 jobs that match these criteria. When prompted, use my most recent resume and default answers.",
+        "options": {
+          "systemMessage": "=# Overview\nYou are a smart, advanced web agent connected to tools that let you control a remote web browser. Your primary goal is to fulfill the human's request accurately and efficiently by interacting with web pages using your tools.\n\n## Tools\n\n### Start_Browser\n- Always begin with this tool.\n- It returns a `sessionId` and `windowId` which are **required** for all other tools.\n- You must include these IDs in every subsequent tool call.\n\n### Load URL\n- Loads a website in the browser window.\n- Pass the `sessionId`, `windowId`, and the desired URL (e.g., `\"https://www.bestbuy.com\"`).\n\n### Query\n- You don't have access to the browser screen but you can call this tool to get knowledge and hints of the current browser window.\n- Use this tool to retrieve information that the human asked for.\n\n### Click\n- Use this tool to click on elements like buttons.\n\n### Type\n- Use this to type text into a visible input field. This tool clicks Enter after typing the text so don't send [ENTER] commandes.\n\n### End Session\n- When the task is fully complete, use this tool to properly close the browser session.\n- You must ALWAYS USE THIS TOOL BEFORE RESPONDING TO THE HUMAN\n\n### Think\n- Use when you need to reflect on what you've done and think about what steps to take next\n\n\n## Important\n- Always think step-by-step. Use `Query` whenever you’re unsure what’s on the screen or what to click/type next.\n- You will NEVER need to login",
+          "maxIterations": 20,
+          "returnIntermediateSteps": false,
+          "passthroughBinaryImages": true
+        }
+      },
+      "id": "238e7ea2-30e2-4bf3-bfbc-75d16c5286b7",
+      "name": "Browser Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1060,
+        -20
+      ],
+      "retryOnFail": false,
+      "typeVersion": 1.8,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "content": "# Browser Agent\n",
+        "height": 240,
+        "width": 760,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        800,
+        -100
+      ],
+      "id": "196321e4-d547-412e-8c79-20d6718d20db",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Browser Tools\n",
+        "height": 220,
+        "width": 760,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        800,
+        160
+      ],
+      "id": "51d283ba-28dd-482a-b294-516f7d733739",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Think",
+        "height": 220,
+        "width": 260,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        520,
+        160
+      ],
+      "id": "ac1f7488-ceb8-4d83-8f26-c50414ab68d9",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Model / Memory",
+        "height": 240,
+        "width": 260,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        520,
+        -100
+      ],
+      "id": "c9a99c72-9bde-4a0b-b16e-a9723270a309",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Start Browser Tool",
+        "height": 240,
+        "width": 1040,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        520,
+        400
+      ],
+      "id": "4aba0430-de0d-41b4-b7b3-d24250a01c7d",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        680,
+        20
+      ],
+      "id": "660a9aec-5597-40b8-86b1-8791dce82d86",
+      "name": "Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to click on an element",
+        "method": "POST",
+        "url": "=https://api.airtop.ai/api/v1/sessions/{{ $fromAI('sessionId') }}/windows/{{ $fromAI('windowId') }}/click",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "elementDescription",
+              "value": "={{ $fromAI('elementDescription', `the element to click on in as much detail as possible`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        240
+      ],
+      "id": "5b12dc6b-e82a-4f6f-a536-77fa7b1f8cdc",
+      "name": "Click",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "jRNzBoBIqv9GX08E",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Quick Setup Guide\n\nHere are the key steps to get your remote browser agent up and running with n8n.\n\n1.  **Airtop API & Profiles**\n    * First, head over to [Airtop](https://www.airtop.ai/) to get your API key.\n    * If you need to log into websites like LinkedIn, create a **Profile** in Airtop and save your credentials there.\n\n2.  **Connect Your AI Model**\n    * You'll need an API key from an AI provider. In the video, I use OpenAI's **GPT-4 Turbo** as it gives the best results.\n    * Add this key to the **Chat Model** node in your n8n workflow.\n\n3.  **Link the Start Browser Tool**\n    * In n8n, make sure you connect your main agent workflow to your **Start Browser** workflow. This allows the agent to launch new browser sessions as needed.\n\n4.  **(Optional) Watch the Agent Live**\n    * To see your agent working in real-time, you can have the **Start Browser** workflow send the live session link to a Google Sheet, just like I did in the video.",
+        "height": 480,
+        "width": 660
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -80
+      ],
+      "id": "f2f3d337-8a98-4a23-b16b-000941e866ab",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1IbcRfW7ovwS_IaNfQ5i9KMEKFWBPmeytwpYjwWea90Y",
+          "mode": "list",
+          "cachedResultName": "Browser Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IbcRfW7ovwS_IaNfQ5i9KMEKFWBPmeytwpYjwWea90Y/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IbcRfW7ovwS_IaNfQ5i9KMEKFWBPmeytwpYjwWea90Y/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Liveview URL": "={{ $json.data.liveViewUrl }}",
+            "Date": "={{$now.format('yyyy-MM-dd HH:mm')}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Liveview URL",
+              "displayName": "Liveview URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1200,
+        460
+      ],
+      "id": "64a19139-5230-4f86-b302-2046529362f5",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4CYGp1YpO3QUfXYi",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-4-turbo"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        -20
+      ],
+      "id": "cbe800bf-f354-4df6-8614-19df08f5a69a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "EGr9oBm8DuJ5qwgd",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        860,
+        -20
+      ],
+      "id": "721cc743-9842-4a0d-9c87-b5d60402183e",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Type": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Session": {
+      "main": [
+        [
+          {
+            "node": "Window",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load URL": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Browser": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "End Session": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Click": {
+      "ai_tool": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Return IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Browser Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e3f17448-bc74-4264-995f-9e3e3df72dda",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "edd396ac183fc9e94d1f3dce687b114ea319ea453922a74ea2677179898eabec"
+  },
+  "id": "46oHfCyZzDzPsCPm",
+  "tags": []
+}
