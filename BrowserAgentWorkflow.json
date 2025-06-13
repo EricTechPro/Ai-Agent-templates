@@ -425,14 +425,14 @@
           "value": "1IbcRfW7ovwS_IaNfQ5i9KMEKFWBPmeytwpYjwWea90Y",
           "mode": "list",
           "cachedResultName": "Browser Agent",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IbcRfW7ovwS_IaNfQ5i9KMEKFWBPmeytwpYjwWea90Y/edit?usp=drivesdk"
+          "cachedResultUrl": "google-sheets"
         },
         "sheetName": {
           "__rl": true,
           "value": "gid=0",
           "mode": "list",
           "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IbcRfW7ovwS_IaNfQ5i9KMEKFWBPmeytwpYjwWea90Y/edit#gid=0"
+          "cachedResultUrl": "google sheets link"
         },
         "columns": {
           "mappingMode": "defineBelow",
