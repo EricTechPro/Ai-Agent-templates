@@ -1,0 +1,941 @@
+{
+  "name": "AI_Video_Gen",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        120,
+        0
+      ],
+      "id": "e15f361c-80e9-4073-b8f7-eceaf035001f",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1V2RqHSIJrS-i3bDrw9O5vQNF_o52UE11BSpF9MW0bHU",
+          "mode": "list",
+          "cachedResultName": "AI Video Project Characters",
+          "cachedResultUrl": "[your-google-sheet-here]"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "[your-google-sheet-here]"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Not Started"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        340,
+        0
+      ],
+      "id": "339e3edc-cbb8-4acf-a787-23621dacff3a",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4CYGp1YpO3QUfXYi",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt4o",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAzureOpenAi",
+      "typeVersion": 1,
+      "position": [
+        500,
+        200
+      ],
+      "id": "756dd29e-e36a-4909-b285-5397482976db",
+      "name": "Azure OpenAI Chat Model",
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "YVcNtqzrc5eX4szp",
+          "name": "Azure Open AI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"scene1\": {\n    \"script\": \"Script text for scene 1...\",\n    \"image\": \"Image prompt for scene 1...\"\n  },\n  \"scene2\": {\n    \"script\": \"Script text for scene 2...\",\n    \"image\": \"Image prompt for scene 2...\"\n  },\n  \"scene3\": {\n    \"script\": \"Script text for scene 3...\",\n    \"image\": \"Image prompt for scene 3...\"\n  },\n  \"scene4\": {\n    \"script\": \"Script text for scene 4...\",\n    \"image\": \"Image prompt for scene 4...\"\n  },\n  \"scene5\": {\n    \"script\": \"Script text for scene 5...\",\n    \"image\": \"Image prompt for scene 5...\"\n  },\n  \"scene6\": {\n    \"script\": \"Script text for scene 6...\",\n    \"image\": \"Image prompt for scene 6...\"\n  },\n  \"scene7\": {\n    \"script\": \"Script text for scene 7...\",\n    \"image\": \"Image prompt for scene 7...\"\n  },\n  \"scene8\": {\n    \"script\": \"Script text for scene 8...\",\n    \"image\": \"Image prompt for scene 8...\"\n  },\n  \"scene9\": {\n    \"script\": \"Script text for scene 9...\",\n    \"image\": \"Image prompt for scene 9...\"\n  },\n  \"scene10\": {\n    \"script\": \"Script text for scene 10...\",\n    \"image\": \"Image prompt for scene 10...\"\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        860,
+        200
+      ],
+      "id": "754760c9-7023-4c1d-8a34-cfcfbf73039a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        0
+      ],
+      "id": "e39347be-7acd-496d-a901-c1872691b3fa",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Topic: {{ $json.Topic }}\nReference URL: {{ $json.Reference }}\n\nTask:\n- Your mission is to generate a single, clean JSON object based on the provided topic and reference URL. This JSON will serve as the complete blueprint for an automated 1-minute video.\n\nContent Guidelines:\n\n- Script: Generate exactly 10 scenes. The total script length must be 130-160 words. Scene 1 must be a strong, attention-grabbing hook.\n\n- Image Prompts: Each prompt must be detailed and ready for an AI image generator.\n\n- Include: subject, action, setting, mood, visual style, camera angle, and lighting.\n\n- Variety: Vary the camera angles and shot types (e.g., wide shots, close-ups, dynamic action shots) across the 10 scenes to create a visually interesting sequence.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert documentary scriptwriter and creative director, specialized in creating epic, viral-style historical content."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        600,
+        0
+      ],
+      "id": "dac91c92-f015-42ca-92e6-dde5f51e3036",
+      "name": "AI Script Writer"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://tganmtfrijhcjknpfjxc.supabase.co/storage/v1/object/3d-images/{{$now.toMillis()}}-image",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        360
+      ],
+      "id": "30c33e7f-96d0-446c-b391-9391ef086831",
+      "name": "Supabase Image Upload",
+      "credentials": {
+        "supabaseApi": {
+          "id": "cHlvtyx5bgw2qF5T",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/kling-video/v2.1/standard/image-to-video",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"prompt\": \"Animate this image with subtle movement. Make the motion lifelike and smooth, like a paused scene coming to life. Add depth with subtle parallax. Keep lighting and colours consistent.\",\n  \"image_url\": \"https://tganmtfrijhcjknpfjxc.supabase.co/storage/v1/object/public/{{$json.Key}}\",\n  \"duration\": 5,\n  \"aspect_ratio\": \"16:9\",\n  \"negative_prompt\": \"blur, distort, low quality\",\n  \"cfg_scale\": 0.7\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        360
+      ],
+      "id": "3b02d745-f4f7-4783-be36-2514cc5737f8",
+      "name": "Image-to-Video Gen",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "MJxl36fCm5fs37Cq",
+          "name": "Fal.AI Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://queue.fal.run/fal-ai/minimax/speech-02-turbo",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('Split Out').item.json.script.replaceAll('\"', \"'\") }}\",\n  \"voice_setting\": {\n    \"speed\": 1.4,\n    \"vol\": 1.5,\n    \"voice_id\": \"Wise_Woman\",\n    \"pitch\": 0,\n    \"english_normalization\": false\n  },\n  \"output_format\": \"hex\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        300,
+        600
+      ],
+      "id": "4c0a4da2-335a-47d4-b629-d9f1ad1532da",
+      "name": "Text-to-Audio Gen",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "MJxl36fCm5fs37Cq",
+          "name": "Fal.AI Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "model": "gpt-image-1",
+        "prompt": "=Base on context below a full body, low poly 3D rendered digital image of describe subject and pose with angular surfaces and sharp shadows, stylized like a video game cinematic or Unreal Engine cutscene. Subject should have exaggerated polygonal features, minimal facial detail, and clean, flat color shading:\n\n{{ $json.image }}\n",
+        "options": {
+          "size": "1536x1024"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        300,
+        360
+      ],
+      "id": "94c2fb48-87cb-4842-9521-eb41baaba603",
+      "name": "Image Generation",
+      "credentials": {
+        "openAiApi": {
+          "id": "EGr9oBm8DuJ5qwgd",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/kling-video/requests/{{ $json.request_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1060,
+        360
+      ],
+      "id": "0aa926c2-f989-4d48-8591-df8d2cc3b798",
+      "name": "Fetch Video",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "MJxl36fCm5fs37Cq",
+          "name": "Fal.AI Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://queue.fal.run/fal-ai/minimax/requests/{{ $json.request_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        740,
+        600
+      ],
+      "id": "a1ce174f-485f-44f1-9cdd-6c502cd61e57",
+      "name": "Fetch Audio",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "MJxl36fCm5fs37Cq",
+          "name": "Fal.AI Auth"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        240,
+        840
+      ],
+      "id": "a0d33498-7909-4165-b01d-7445c1e1a1fe",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        440,
+        840
+      ],
+      "id": "0d2d8808-e5bb-4559-839e-3f5d87454c5e",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.creatomate.com/v1/renders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template_id\": \"d935bcd9-e33e-4a69-bc4c-9dd362c44597\",\n  \"render_scale\": 1,\n  \"modifications\": {\n    \"video1.source\": \"{{ $json.data[0].video.url }}\",\n    \"video2.source\": \"{{ $json.data[1].video.url }}\",\n    \"video3.source\": \"{{ $json.data[2].video.url }}\",\n    \"video4.source\": \"{{ $json.data[3].video.url }}\",\n    \"video5.source\": \"{{ $json.data[4].video.url }}\",\n    \"video6.source\": \"{{ $json.data[5].video.url }}\",\n    \"video7.source\": \"{{ $json.data[6].video.url }}\",\n    \"video8.source\": \"{{ $json.data[7].video.url }}\",\n    \"video9.source\": \"{{ $json.data[8].video.url }}\",\n    \"video10.source\": \"{{ $json.data[9].video.url }}\",\n\n    \"video1.duration\": \"{{ $json.data[10].duration_ms / 1000 }}\",\n    \"video2.duration\": \"{{ $json.data[11].duration_ms / 1000 }}\",\n    \"video3.duration\": \"{{ $json.data[12].duration_ms / 1000 }}\",\n    \"video4.duration\": \"{{ $json.data[13].duration_ms / 1000 }}\",\n    \"video5.duration\": \"{{ $json.data[14].duration_ms / 1000 }}\",\n    \"video6.duration\": \"{{ $json.data[15].duration_ms / 1000 }}\",\n    \"video7.duration\": \"{{ $json.data[16].duration_ms / 1000 }}\",\n    \"video8.duration\": \"{{ $json.data[17].duration_ms / 1000 }}\",\n    \"video9.duration\": \"{{ $json.data[18].duration_ms / 1000 }}\",\n    \"video10.duration\": \"{{ $json.data[19].duration_ms / 1000 }}\",\n\n    \"video1.speed\": \"{{ (5 / ($json.data[10].duration_ms / 1000)) * 100 }}%\",\n    \"video2.speed\": \"{{ (5 / ($json.data[11].duration_ms / 1000)) * 100 }}%\",\n    \"video3.speed\": \"{{ (5 / ($json.data[12].duration_ms / 1000)) * 100 }}%\",\n    \"video4.speed\": \"{{ (5 / ($json.data[13].duration_ms / 1000)) * 100 }}%\",\n    \"video5.speed\": \"{{ (5 / ($json.data[14].duration_ms / 1000)) * 100 }}%\",\n    \"video6.speed\": \"{{ (5 / ($json.data[15].duration_ms / 1000)) * 100 }}%\",\n    \"video7.speed\": \"{{ (5 / ($json.data[16].duration_ms / 1000)) * 100 }}%\",\n    \"video8.speed\": \"{{ (5 / ($json.data[17].duration_ms / 1000)) * 100 }}%\",\n    \"video9.speed\": \"{{ (5 / ($json.data[18].duration_ms / 1000)) * 100 }}%\",\n    \"video10.speed\": \"{{ (5 / ($json.data[19].duration_ms / 1000)) * 100 }}%\",\n\n    \"audio1.source\": \"{{ $json.data[10].audio.url }}\",\n    \"audio2.source\": \"{{ $json.data[11].audio.url }}\",\n    \"audio3.source\": \"{{ $json.data[12].audio.url }}\",\n    \"audio4.source\": \"{{ $json.data[13].audio.url }}\",\n    \"audio5.source\": \"{{ $json.data[14].audio.url }}\",\n    \"audio6.source\": \"{{ $json.data[15].audio.url }}\",\n    \"audio7.source\": \"{{ $json.data[16].audio.url }}\",\n    \"audio8.source\": \"{{ $json.data[17].audio.url }}\",\n    \"audio9.source\": \"{{ $json.data[18].audio.url }}\",\n    \"audio10.source\": \"{{ $json.data[19].audio.url }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        620,
+        840
+      ],
+      "id": "8ba5b074-dabf-424e-99bd-5727db74564f",
+      "name": "Creatomate Video Gen",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "oVbn6CR1Vh0rHCpV",
+          "name": "Bearer Auth account"
+        },
+        "httpHeaderAuth": {
+          "id": "NuUj334voBuEdZlP",
+          "name": "Creatomate"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## #1 - AI Generate Script\n",
+        "height": 360,
+        "width": 1460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -20
+      ],
+      "id": "e96769a8-4f31-45a0-beb2-583103d99d37",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## #2 - AI Generate Media Files\n",
+        "height": 400,
+        "width": 1460,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        340
+      ],
+      "id": "197ed06e-0180-4814-8051-575a98f662c8",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## #3 - Merge Media Files ---> Video\n\n",
+        "height": 360,
+        "width": 1460,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        740
+      ],
+      "id": "5a40d041-d862-483d-acf7-b5b9f7b3e78d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "description": "Accepts a single website URL as input. This tool uses Firecrawl's extract feature to generate a condensed \"director's summary\" of the page's content. The summary is specifically structured to contain a narrative hook, key chronological events, and the subject's legacy.\nIt returns a JSON object containing this brief.\nUse this tool to obtain the essential story and most critical information from a webpage, providing the perfect high-level source material for your script writing task.",
+        "workflowId": {
+          "__rl": true,
+          "value": "BDThhb26wMhkncQP",
+          "mode": "list",
+          "cachedResultName": "Firecrawl_Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('url', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "url"
+          ],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        700,
+        200
+      ],
+      "id": "e90b41d1-4a7a-4548-aadc-96bb376e6c1e",
+      "name": "Fetch_URL_As_Summary"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1V2RqHSIJrS-i3bDrw9O5vQNF_o52UE11BSpF9MW0bHU",
+          "mode": "list",
+          "cachedResultName": "AI Video Project Characters",
+          "cachedResultUrl": "[your-google-sheet-here]"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "[your-google-sheet-here]"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Google Sheets').item.json.row_number }}",
+            "Topic": "={{ $('Google Sheets').item.json.Topic }}",
+            "Reference": "={{ $('Google Sheets').item.json.Reference }}",
+            "Status": "=Finished",
+            "Output": "={{ $json.url }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reference",
+              "displayName": "Reference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Output",
+              "displayName": "Output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        860,
+        840
+      ],
+      "id": "023c277e-6e45-4b6a-b87b-6e9254def572",
+      "name": "Update Record",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4CYGp1YpO3QUfXYi",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 4,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        360
+      ],
+      "id": "8b13d79d-5d15-4e80-bf96-481d1953d6ae",
+      "name": "4min",
+      "webhookId": "4d81819e-3153-4e8a-8bf3-8ab34deccc46"
+    },
+    {
+      "parameters": {
+        "amount": 4,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        520,
+        600
+      ],
+      "id": "b5a954a6-3a55-4971-9814-28c2120e8c09",
+      "name": "4min1",
+      "webhookId": "4d81819e-3153-4e8a-8bf3-8ab34deccc46"
+    }
+  ],
+  "pinData": {
+    "AI Script Writer": [
+      {
+        "json": {
+          "output": {
+            "scene1": {
+              "script": "Picture the late 19th century—a storm rages, lightning cracks the air, and one man sees the future of electricity in its dazzling glow. That man? Nikola Tesla.",
+              "image": "Nikola Tesla standing in a dimly lit lab as lightning-like electric sparks flash around him, evoking a stormy and dramatic mood. Wide shot from a low angle to emphasize grandeur, with bluish-white lighting reflecting the electrical theme."
+            },
+            "scene2": {
+              "script": "Born in 1856 in modern-day Croatia, Tesla was drawn to science like a moth to a flame, building his first inventions as a curious 10-year-old.",
+              "image": "A young Tesla in a rustic 19th-century European village, tinkering with mechanical parts at his family home. Warm, nostalgic lighting with a medium-close shot showing determination on his face."
+            },
+            "scene3": {
+              "script": "He immigrated to the United States in 1884, stepping into the turbulent world of Thomas Edison and the famous 'War of Currents.'",
+              "image": "Tesla on a steamship dock in New York, gazing at the Statue of Liberty with a suitcase in hand. Dynamic wide shot with dramatic sunset lighting highlighting his hopeful expression."
+            },
+            "scene4": {
+              "script": "Tesla developed alternating current (AC): a revolutionary system far more effective than Edison’s direct current (DC).",
+              "image": "Tesla working in a small, cluttered workshop as wires and coils buzz with electricity. Close-up of his focused eyes, lit by the bluish electric glow of an AC motor he’s testing."
+            },
+            "scene5": {
+              "script": "Despite the brilliance of AC, Edison launched a smear campaign, even staging public electrocutions of animals to discredit Tesla.",
+              "image": "A Victorian-era street demonstration with Edison’s people electrocuting an animal using DC machinery, creating a somber scene. Wide shot with dark, shadowy lighting emphasizing public tension."
+            },
+            "scene6": {
+              "script": "But Tesla’s genius won. The 1893 Chicago World’s Fair radiated light for the first time in history—all powered by his AC system.",
+              "image": "The Chicago World’s Fair at night, ablaze with electric lights. Grand wide shot from a high angle capturing the glowing pavilions, with festive crowds milling below and a backdrop of darkness."
+            },
+            "scene7": {
+              "script": "From wireless energy to remote controls, Tesla invented technologies decades ahead of his time.",
+              "image": "Tesla sketching a prototype for a wireless energy transmitter in a futuristic laboratory setting. Medium shot with soft lighting focused on his sketches, giving a visionary atmosphere."
+            },
+            "scene8": {
+              "script": "But brilliance came at a cost—Tesla lived simply, lost investments, and died penniless in 1943.",
+              "image": "An aging Tesla alone in his modest New York hotel room, sitting by a bare desk with papers piled around him. Intimate close-up with somber, warm lighting to reflect his solitude."
+            },
+            "scene9": {
+              "script": "Today, he’s remembered as the father of modern electricity, a true pioneer who lit up the world.",
+              "image": "A vibrant museum exhibit showcasing a statue of Tesla, surrounded by glowing replicas of his inventions. Wide, symmetrical shot with bright, energizing lighting symbolizing his lasting legacy."
+            },
+            "scene10": {
+              "script": "For every flickering bulb and electric hum, the legacy of Nikola Tesla lives on, electrifying the spirit of innovation.",
+              "image": "A dazzling cityscape at night lit up by millions of lights, symbolizing Tesla’s impact. Wide, sweeping aerial shot with luminous golden tones to evoke admiration and energy."
+            }
+          }
+        }
+      }
+    ],
+    "Google Sheets": [
+      {
+        "json": {
+          "row_number": 3,
+          "Topic": "Nikola Tesla",
+          "Reference": "https://en.wikipedia.org/wiki/Nikola_Tesla",
+          "Status": "Not Started",
+          "Output": ""
+        }
+      }
+    ],
+    "4min": [
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "91ee2291-8efe-4786-a8a5-a94ae533b619",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/91ee2291-8efe-4786-a8a5-a94ae533b619",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/91ee2291-8efe-4786-a8a5-a94ae533b619/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/91ee2291-8efe-4786-a8a5-a94ae533b619/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 0
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "e0d61006-aa79-49fb-a37f-19b104cb2f5e",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/e0d61006-aa79-49fb-a37f-19b104cb2f5e",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/e0d61006-aa79-49fb-a37f-19b104cb2f5e/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/e0d61006-aa79-49fb-a37f-19b104cb2f5e/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 0
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "85a84da1-b448-471e-87bd-86390591441b",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/85a84da1-b448-471e-87bd-86390591441b",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/85a84da1-b448-471e-87bd-86390591441b/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/85a84da1-b448-471e-87bd-86390591441b/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 0
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "59775975-d3e2-4b25-9459-9910dfa4a4a2",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/59775975-d3e2-4b25-9459-9910dfa4a4a2",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/59775975-d3e2-4b25-9459-9910dfa4a4a2/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/59775975-d3e2-4b25-9459-9910dfa4a4a2/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 1
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "e0da85e6-79da-4c01-a002-9249ddc6bdfc",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/e0da85e6-79da-4c01-a002-9249ddc6bdfc",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/e0da85e6-79da-4c01-a002-9249ddc6bdfc/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/e0da85e6-79da-4c01-a002-9249ddc6bdfc/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 3
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "f5237d08-96d8-41fb-88da-bba14c4cd304",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/f5237d08-96d8-41fb-88da-bba14c4cd304",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/f5237d08-96d8-41fb-88da-bba14c4cd304/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/f5237d08-96d8-41fb-88da-bba14c4cd304/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 5
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "4a497b84-4990-4847-951a-8f94829f1f2d",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/4a497b84-4990-4847-951a-8f94829f1f2d",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/4a497b84-4990-4847-951a-8f94829f1f2d/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/4a497b84-4990-4847-951a-8f94829f1f2d/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 5
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "9785f8d9-2b45-4fa1-8395-b94d093230fe",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/9785f8d9-2b45-4fa1-8395-b94d093230fe",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/9785f8d9-2b45-4fa1-8395-b94d093230fe/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/9785f8d9-2b45-4fa1-8395-b94d093230fe/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 7
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "b1e38321-2ef2-4d5e-9a07-8b2877d26994",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/b1e38321-2ef2-4d5e-9a07-8b2877d26994",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/b1e38321-2ef2-4d5e-9a07-8b2877d26994/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/b1e38321-2ef2-4d5e-9a07-8b2877d26994/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 7
+        }
+      },
+      {
+        "json": {
+          "status": "IN_QUEUE",
+          "request_id": "08aa9753-8f93-4613-ad54-398157d3c074",
+          "response_url": "https://queue.fal.run/fal-ai/kling-video/requests/08aa9753-8f93-4613-ad54-398157d3c074",
+          "status_url": "https://queue.fal.run/fal-ai/kling-video/requests/08aa9753-8f93-4613-ad54-398157d3c074/status",
+          "cancel_url": "https://queue.fal.run/fal-ai/kling-video/requests/08aa9753-8f93-4613-ad54-398157d3c074/cancel",
+          "logs": null,
+          "metrics": {},
+          "queue_position": 7
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "AI Script Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Script Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Script Writer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Script Writer": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Image Generation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Text-to-Audio Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Image Upload": {
+      "main": [
+        [
+          {
+            "node": "Image-to-Video Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image-to-Video Gen": {
+      "main": [
+        [
+          {
+            "node": "4min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Generation": {
+      "main": [
+        [
+          {
+            "node": "Supabase Image Upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-to-Audio Gen": {
+      "main": [
+        [
+          {
+            "node": "4min1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Video": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Audio": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Creatomate Video Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch_URL_As_Summary": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Script Writer",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creatomate Video Gen": {
+      "main": [
+        [
+          {
+            "node": "Update Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4min": {
+      "main": [
+        [
+          {
+            "node": "Fetch Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4min1": {
+      "main": [
+        [
+          {
+            "node": "Fetch Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7c22c0b6-0c72-46de-b8ce-47c865f8abc8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "edd396ac183fc9e94d1f3dce687b114ea319ea453922a74ea2677179898eabec"
+  },
+  "id": "UP3WzbE4Q5xGc6mT",
+  "tags": []
+}
