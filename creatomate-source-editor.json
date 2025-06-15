@@ -1,0 +1,147 @@
+{
+  "output_format": "mp4",
+  "width": 1536,
+  "height": 1024,
+  "elements": [
+    {
+      "id": "fab4c865-d400-453e-9330-6b95644a399e",
+      "name": "video1",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "481cf2be-296c-47db-9af1-c6ceedee0586",
+      "name": "video2",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "7bc892f7-9a63-4449-803d-f0a535a92656",
+      "name": "video3",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "8c953b1c-625d-45ca-a269-f01a68f37d6c",
+      "name": "video4",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "ccb2b488-afb5-4222-a693-7c327081d5d2",
+      "name": "video5",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "37d9d03f-dc7f-4283-8340-2bad764b7675",
+      "name": "video6",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "c7468827-e762-4396-8458-54465df7f807",
+      "name": "video7",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "7212e0cc-ebe9-4a6f-b75f-c5132a471d13",
+      "name": "video8",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "5b3da568-d420-4cbe-a6af-7aa1aa74c3b9",
+      "name": "video9",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "6e810ca0-dfe2-4941-a23e-14da0dfcdd28",
+      "name": "video10",
+      "type": "video",
+      "track": 1,
+      "dynamic": true
+    },
+    {
+      "id": "849a91c8-7103-4ba1-b550-e7732c92d014",
+      "name": "audio1",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "7dcea53b-606e-495d-b0f6-1f048cf1f213",
+      "name": "audio2",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "2916682d-2f22-4553-a276-9226257ed24d",
+      "name": "audio3",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "e1d90fdb-2b49-4077-8239-b3372cda755d",
+      "name": "audio4",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "378b33a4-3c96-4731-948a-5d9de43575b2",
+      "name": "audio5",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "1ebc9a42-549f-4111-b0a3-6a0907011c1d",
+      "name": "audio6",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "65473bea-3985-4c36-9556-b5079c550747",
+      "name": "audio7",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "2cc7e9f6-8b70-4649-b950-ffea7047b049",
+      "name": "audio8",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "cd119687-49d7-46a4-b721-bd4aa9372a5c",
+      "name": "audio9",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    },
+    {
+      "id": "9af027bb-fedb-4ff0-9143-172af86f88aa",
+      "name": "audio10",
+      "type": "audio",
+      "track": 2,
+      "dynamic": true
+    }
+  ]
+}
